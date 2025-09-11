@@ -1,1 +1,35 @@
 
+name: Build ESP8266 Firmware
+
+on:
+  push:
+    paths:
+      - '**.ino'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Arduino CLI
+      uses: arduino/setup-arduino-cli@v1
+
+    - name: Install ESP8266 core
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install esp8266:esp8266
+
+    - name: Compile sketch
+      run: |
+        mkdir -p build
+        arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 ./ESP8266_PhiSiFi.ino --output-dir build
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: firmware
+        path: build/*.bin
